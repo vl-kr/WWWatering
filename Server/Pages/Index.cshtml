@@ -1,0 +1,28 @@
+﻿@page
+@model IndexModel
+@inject MyService MyServiceInstance
+@{
+    ViewData["Title"] = "WWWatering";
+}
+
+<head>
+    <link rel="stylesheet" href="~/css/index.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h1>Plant Watering System</h1>
+    <div class="sensor">
+      <h2>Current Humidity</h2>
+      <p id="humidity">50%</p>
+    </div>
+    <div class="control">
+      <h2>Water the Plant</h2>
+      <button id="water-btn">Water Now</button>
+    </div>
+    <div class="history">
+      <h2>Last Watered</h2>
+      <p id="last-watered">2023-04-23 11:30 AM</p>
+    </div>
+  </div>
+</body>
