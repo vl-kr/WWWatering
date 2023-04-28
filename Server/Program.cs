@@ -9,7 +9,9 @@ namespace WWWatering
             // Add services to the container.
             builder.Services.AddSingleton<MyService>();
             //builder.Services.AddHostedService<MyBackgroundService>();
+            var sshServer = new SshServer("your_ssh_host", 22, "your_username", "your_password");
             builder.Services.AddRazorPages();
+            builder.Services.AddHttpClient();
 
             var app = builder.Build();
 

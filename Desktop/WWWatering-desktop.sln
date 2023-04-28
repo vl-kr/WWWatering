@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WWWatering-desktop", "WWWatering-desktop.csproj", "{0204084B-11C2-4961-A82B-5E1F0C60CBDA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0204084B-11C2-4961-A82B-5E1F0C60CBDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0204084B-11C2-4961-A82B-5E1F0C60CBDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0204084B-11C2-4961-A82B-5E1F0C60CBDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0204084B-11C2-4961-A82B-5E1F0C60CBDA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {69EAFEF8-E497-48DD-ABD6-4D5D9CC5C7F7}
+	EndGlobalSection
+EndGlobal
