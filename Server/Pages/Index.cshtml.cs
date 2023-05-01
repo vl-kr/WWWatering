@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace WWWatering.Pages
 {
@@ -29,7 +32,10 @@ namespace WWWatering.Pages
             try 
             {
                 var httpClient = _clientFactory.CreateClient();
-                var response = await httpClient.GetAsync("http://127.0.0.1:5555/api/get-humidity");
+                var json = new { SliderValue = SliderValue, User = User.Identity?.Name };
+                var content = new StringContent(JsonSerializer.Serialize(json), Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync("http://127.0.0.1:5555/api/water", content);
+                
                 if (response.IsSuccessStatusCode)
                 {
                     // Process the response content as needed

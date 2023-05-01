@@ -1,44 +1,68 @@
-﻿/*using System;
+﻿using System;
 using Renci.SshNet;
 using Microsoft.Extensions.Configuration;
+using EmbedIO;
+using EmbedIO.WebApi;
+using Swan.Logging;
 
 namespace WWWatering_desktop
 {
     class Program
     {
+
         static void Main(string[] args)
         {
 
-            
-            string serverIp = "16.16.115.4";
-            int serverPort = 22;
-            int remotePort = 8888;
-            int localPort = 80; // The port your service is running on
-            string username = "ec2-user";
-            string privateKeyPath = @"C:\Users\29161\.ssh\AWS-EC2-WWWatering.pem";
+            IConfigurationBuilder builder = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddXmlFile("App.config");
+            IConfiguration configuration = builder.Build();
 
-            // Load private key for authentication
-            PrivateKeyFile privateKeyFile = new PrivateKeyFile(privateKeyPath);
-            var keyFiles = new[] { privateKeyFile };
+            string serverIP = configuration["AppSettings:SshTunnel:ServerIP"];
+            string sshPrivateKeyPath = configuration["AppSettings:SshTunnel:SshPrivateKeyPath"];
+            string serverSshUsername = configuration["AppSettings:SshTunnel:ServerSshUsername"];
+            int serverSshPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:ServerSshPort"]);
+            int remoteTunnelPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:ServerTunnelingPort"]);
+            int localTunnelPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:LocalTunnelingPort"]);
 
-            var connectionInfo = new ConnectionInfo(serverIp, serverPort, username, new PrivateKeyAuthenticationMethod(username, keyFiles));
+            SshTunneler sshTunneler = new SshTunneler(serverIP, sshPrivateKeyPath, serverSshUsername, serverSshPort, remoteTunnelPort, localTunnelPort);
+            sshTunneler.StartTunnel();
+            Console.WriteLine($"Tunnel between localhost:{remoteTunnelPort} and localhost:{localTunnelPort} started");
 
-            // Create a reverse SSH tunnel
-            using (var client = new SshClient(connectionInfo))
+            HumidityLogger humidityLogger = new HumidityLogger("humidityLog.txt");
+
+            FileLogger fileLogger = new FileLogger("webServerLog.txt", false);
+            Logger.UnregisterLogger<ConsoleLogger>();
+            Logger.RegisterLogger(fileLogger);
+
+            int webPort = localTunnelPort;
+            string url = $"http://127.0.0.1:{webPort}";
+
+            using (var server = CreateWebServer(url))
             {
-                client.Connect();
+                server.Start();
 
-                var reverseTunnel = new ForwardedPortRemote("192.169.99.99", (uint)remotePort, "192.168.100.1", (uint)localPort);
-                client.AddForwardedPort(reverseTunnel);
-                reverseTunnel.Start();
+                Console.WriteLine($"Server listening at {url}. Press Enter to stop.");
 
-                Console.WriteLine("Reverse SSH tunnel established. Press any key to close the tunnel...");
-                Console.ReadKey();
-
-                reverseTunnel.Stop();
-                client.Disconnect();
+                var manualResetEvent = new ManualResetEvent(false);
+                Console.CancelKeyPress += (sender, e) =>
+                {
+                    e.Cancel = true;
+                    sshTunneler.Dispose();
+                    manualResetEvent.Set(); // Release the main thread
+                };
+                Console.ReadLine();
             }
+        }
+
+        private static WebServer CreateWebServer(string url)
+        {
+            var server = new WebServer(o => 
+                o.WithUrlPrefix(url)
+                .WithMode(HttpListenerMode.EmbedIO))
+                .WithWebApi("/api", m => m.WithController<APIs>());
+
+            return server;
         }
     }
 }
-*/

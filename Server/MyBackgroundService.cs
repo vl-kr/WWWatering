@@ -23,7 +23,6 @@ public class MyBackgroundService : IHostedService, IDisposable
     private void DoWork(object? state)
     {
         _myService.GetMessage();
-
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
