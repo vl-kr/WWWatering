@@ -6,7 +6,7 @@
 }
 
 <head>
-    <link rel="stylesheet" href="~/css/index.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
 </head>
 
 <body>
@@ -19,8 +19,12 @@
     <div class="control">
       <h2>Water the Plant</h2>
       <form method="post">
-        <input type="range" min="1" max="99" value="1" name="SliderValue" id="slider" />
-        <span id="sliderValue">1</span>
+        <div class="slider-container">
+          <input type="range" min="1" max="99" value="1" name="SliderValue" id="slider" />
+          <div>
+            <span>Watering time: </span><span id="sliderValue">1</span><span>s</span>
+          </div>
+        </div>
         <input type="submit" value="Water" asp-page-handler="ButtonClick" />
       </form>
       @if (Model.Message != null)
