@@ -30,6 +30,7 @@ namespace WWWatering_desktop
             Console.WriteLine($"Tunnel between localhost:{remoteTunnelPort} and localhost:{localTunnelPort} started");
 
             HumidityLogger humidityLogger = new HumidityLogger("humidityLog.txt");
+            humidityLogger.StartLogging();
 
             FileLogger fileLogger = new FileLogger("webServerLog.txt", false);
             Logger.UnregisterLogger<ConsoleLogger>();

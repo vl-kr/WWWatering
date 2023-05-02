@@ -22,11 +22,13 @@ namespace WWWatering_desktop
         {
             _timer = new System.Timers.Timer(60000); // every 60 seconds
             _timer.Elapsed += LogHumidity;
+            _timer.Start();
         }
 
         private void LogHumidity(Object? source, ElapsedEventArgs e)
         {
             _logStreamWriter.WriteLine(e.SignalTime.ToString("yyyy-MM-dd HH:mm:ss") + " " + HumiditySimulator.GetHumidity());
+            _logStreamWriter.Flush();
         }
     }
 }
