@@ -1,6 +1,5 @@
 ﻿@page
 @model IndexModel
-@inject MyService MyServiceInstance
 @{
     ViewData["Title"] = "WWWatering";
 }
@@ -12,9 +11,11 @@
 <body>
   <div class="container">
     <h1>Plant Watering System</h1>
+    <p class="errorMessage">@Model.ErrorInfo</p>
     <div class="sensor">
       <h2>Current Humidity</h2>
-      <p id="humidity">50%</p>
+      <p id="humidity">@Model.HumdityValueMessage</p>
+      <p id="updateTimeInfo">@Model.HumidityLastUpdatedMessage</p>
     </div>
     <div class="control">
       <h2>Water the Plant</h2>
@@ -22,19 +23,20 @@
         <div class="slider-container">
           <input type="range" min="1" max="99" value="1" name="SliderValue" id="slider" />
           <div>
-            <span>Watering time: </span><span id="sliderValue">1</span><span>s</span>
+            <span>Watering time: </span><span id="sliderValue">1</span><span>s (estimated <span id="sliderValueMl">@(1 * Model.WaterVolumePerSecond)</span> ml)</span>
           </div>
         </div>
         <input type="submit" value="Water" asp-page-handler="ButtonClick" />
       </form>
-      @if (Model.Message != null)
+      @if (Model.PostRequestWateringMessage != null)
       {
-        <p>@Model.Message</p>
-      }
+             string classType = Model.PostRequestWateringMessage.Contains("exception") ? "errorMessage" : "successMessage";
+             <p class=@classType>@Model.PostRequestWateringMessage</p>
+       }
     </div>
     <div class="history">
       <h2>Last Watered</h2>
-      <p id="last-watered">2023-04-23 11:30 AM</p>
+      <p id="lastWatering">@Model.LastWateringMessage</p>
     </div>
   </div>
 </body>
@@ -44,6 +46,8 @@
         <script>
             document.getElementById("slider").addEventListener("input", function (event) {
                 document.getElementById("sliderValue").textContent = event.target.value;
+                document.getElementById("sliderValueMl").textContent = event.target.value * @Model.WaterVolumePerSecond;
+
             });
         </script>
 }

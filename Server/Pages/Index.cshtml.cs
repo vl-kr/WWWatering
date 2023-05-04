@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -9,17 +10,87 @@ namespace WWWatering.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private readonly IHttpClientFactory _clientFactory;
+        private readonly HttpClient _httpClient;
+        private readonly PlantInfo _plantInfo;
 
-        public string Message { get; private set; }
+        public int WaterVolumePerSecond = 20;
+        public string? ErrorInfo => _plantInfo.ErrorInfo;
+        public string PostRequestWateringMessage { get; private set; }
+
+        public string HumdityValueMessage
+        {
+            get
+            {
+                if (_plantInfo.Humidity == null)
+                {
+                    return "Unknown";
+                }
+                else
+                {
+                    return _plantInfo.Humidity.Value.ToString() + '%';
+                }
+            }
+        }
+
+        public string HumidityLastUpdatedMessage 
+        { 
+            get
+            {
+                if (_plantInfo.LastChecked == null)
+                {
+                    return "Last updated: never";
+                }
+                else
+                {
+                    int secondsSinceLastChecked = (DateTime.UtcNow - _plantInfo.LastChecked.Value).Seconds;
+                    return $"Last updated: {_plantInfo.LastChecked.Value.ToLongTimeString()} ({secondsSinceLastChecked} seconds ago)";
+                }
+            }
+        }
+
+        public string LastWateringMessage
+        {
+            get
+            {
+                if (_plantInfo.LastWatering == null)
+                {
+                    return "Never";
+                }
+                else
+                {
+                    string timeElapsedMessage;
+                    if ((DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalDays > 1)
+                    {
+                        double days = (DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalDays;
+                        timeElapsedMessage = $"{Math.Round(days, 2)} days ago";
+                    }
+                    else if ((DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalHours > 1)
+                    {
+                        double hours = (DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalHours;
+                        timeElapsedMessage = $"{Math.Round(hours, 2)} hours ago";
+                    }
+                    else if ((DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalMinutes > 1)
+                    {
+                        double minutes = (DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalMinutes;
+                        timeElapsedMessage = $"{Math.Round(minutes, 2)} minutes ago";
+                    }
+                    else
+                    {
+                        timeElapsedMessage = $"{(int)(DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalSeconds} seconds ago";
+                    }
+                    return $"{_plantInfo.LastWatering.Value.ToLongTimeString()} ({timeElapsedMessage})";
+                }
+            }
+        }
 
         [BindProperty]
         public int SliderValue { get; set; }
 
-        public IndexModel(ILogger<IndexModel> logger, IHttpClientFactory clientFactory)
+        public IndexModel(ILogger<IndexModel> logger, IHttpClientFactory httpClientFactory, PlantInfo plantInfo)
         {
             _logger = logger;
-            _clientFactory = clientFactory;
+            _httpClient = httpClientFactory.CreateClient("TunneledClient");
+            this._plantInfo = plantInfo;
         }
 
         public void OnGet()
@@ -31,24 +102,24 @@ namespace WWWatering.Pages
         {
             try 
             {
-                var httpClient = _clientFactory.CreateClient();
-                var json = new { SliderValue = SliderValue, User = User.Identity?.Name };
+                var json = new { SliderValue = SliderValue.ToString(), User = User.Identity?.Name };
                 var content = new StringContent(JsonSerializer.Serialize(json), Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync("http://127.0.0.1:5555/api/water", content);
+                var response = await _httpClient.PostAsync("/api/water", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
                     // Process the response content as needed
-                    Message = $"Button clicked! Slider value: {SliderValue}. API call successful." + response.Content.ToString();
+                    _plantInfo.LastWatering = DateTime.UtcNow;
+                    PostRequestWateringMessage = $"Request to water for {SliderValue} seconds sent successfully!";
                 }
                 else
                 {
-                    Message = $"Button clicked! Slider value: {SliderValue}. API call failed.";
+                    PostRequestWateringMessage = $"Request to water for {SliderValue} seconds failed with code {response.StatusCode}.";
                 }
             }
             catch (Exception ex)
             {
-                Message = $"Button clicked! Slider value: {SliderValue}. API call failed. Exception: {ex.Message}";
+                PostRequestWateringMessage = $"Request to water for {SliderValue} seconds failed with exception: {ex.Message}";
             }
 
             return Page();

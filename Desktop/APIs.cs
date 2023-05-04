@@ -7,7 +7,7 @@ using EmbedIO.Routing;
 using EmbedIO.WebApi;
 using EmbedIO;
 using Renci.SshNet;
-
+using Swan.Logging;
 
 namespace WWWatering_desktop
 {
@@ -20,9 +20,11 @@ namespace WWWatering_desktop
         }
 
         [Route(HttpVerbs.Get, "/get-humidity")]
-        public int GetHumidity()
+        public object GetHumidity()
         {
-            return HumiditySimulator.GetHumidity();
+            int humdity = HumiditySimulator.GetHumidity();
+
+            return new { Humidity = humdity };
         }
 
         [Route(HttpVerbs.Post, "/water")]
@@ -31,24 +33,16 @@ namespace WWWatering_desktop
             int milliliters = 0;
             try
             {
-                /*StreamReader reader = new StreamReader(Request.InputStream);
-                string body = await reader.ReadToEndAsync();
-                Console.WriteLine();*/
-                var requestData = await HttpContext.GetRequestDataAsync<SliderData>();
-                int seconds = requestData.SliderValue;
-                milliliters = seconds * 10;
+                var requestData = await HttpContext.GetRequestDataAsync<Dictionary<string, string>>();
+                int seconds = Convert.ToInt32(requestData["SliderValue"]);
+                string user = requestData["User"];
+                Logger.Info($"Watering for {seconds} seconds by {user}");
             }
             catch (Exception ex)
             {
                 throw;
             }
             return (int) HumiditySimulator.Water(milliliters);
-        }
-
-        public class SliderData
-        {
-            public int SliderValue { get; set; }
-            public string? User { get; set; }
         }
     }
 }

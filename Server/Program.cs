@@ -25,14 +25,17 @@ namespace WWWatering
 
 
             // Add services to the container.
-            builder.Services.AddSingleton<MyService>();
-            //builder.Services.AddHostedService<MyBackgroundService>();
+            builder.Services.AddHttpClient("TunneledClient", client =>
+            {
+                client.BaseAddress = new Uri("http://127.0.0.1:5555/");
+            });
+            builder.Services.AddSingleton<PlantInfo>();
+            builder.Services.AddHostedService<MyBackgroundService>();
             builder.Services.AddRazorPages(options =>
             {
                 options.Conventions.AllowAnonymousToPage("/Privacy");
                 options.Conventions.AllowAnonymousToPage("/Login");
             });
-            builder.Services.AddHttpClient();
 
             var app = builder.Build();
 

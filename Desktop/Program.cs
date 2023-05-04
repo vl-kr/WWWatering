@@ -9,51 +9,63 @@ namespace WWWatering_desktop
 {
     class Program
     {
+        private static string _serverIP;
+        private static string _sshPrivateKeyPath;
+        private static string _serverSshUsername;
+        private static int _serverSshPort;
+        private static int _remoteTunnelPort;
+        private static int _localTunnelPort;
 
+        private static string _humidityLogPath;
+        private static string _webServerLogPath;
         static void Main(string[] args)
         {
-
             IConfigurationBuilder builder = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                 .AddXmlFile("App.config");
             IConfiguration configuration = builder.Build();
 
-            string serverIP = configuration["AppSettings:SshTunnel:ServerIP"];
-            string sshPrivateKeyPath = configuration["AppSettings:SshTunnel:SshPrivateKeyPath"];
-            string serverSshUsername = configuration["AppSettings:SshTunnel:ServerSshUsername"];
-            int serverSshPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:ServerSshPort"]);
-            int remoteTunnelPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:ServerTunnelingPort"]);
-            int localTunnelPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:LocalTunnelingPort"]);
+            LoadConfig(configuration);
 
-            SshTunneler sshTunneler = new SshTunneler(serverIP, sshPrivateKeyPath, serverSshUsername, serverSshPort, remoteTunnelPort, localTunnelPort);
-            sshTunneler.StartTunnel();
-            Console.WriteLine($"Tunnel between localhost:{remoteTunnelPort} and localhost:{localTunnelPort} started");
+            var tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
 
-            HumidityLogger humidityLogger = new HumidityLogger("humidityLog.txt");
+            HumidityLogger humidityLogger = new HumidityLogger(_humidityLogPath);
             humidityLogger.StartLogging();
 
-            FileLogger fileLogger = new FileLogger("webServerLog.txt", false);
+            FileLogger fileLogger = new FileLogger(_webServerLogPath, false);
             Logger.UnregisterLogger<ConsoleLogger>();
             Logger.RegisterLogger(fileLogger);
 
-            int webPort = localTunnelPort;
+            int webPort = _localTunnelPort;
             string url = $"http://127.0.0.1:{webPort}";
 
             using (var server = CreateWebServer(url))
             {
                 server.Start();
 
-                Console.WriteLine($"Server listening at {url}. Press Enter to stop.");
+                Console.WriteLine($"Server listening at {url}.");
 
-                var manualResetEvent = new ManualResetEvent(false);
-                Console.CancelKeyPress += (sender, e) =>
-                {
-                    e.Cancel = true;
-                    sshTunneler.Dispose();
-                    manualResetEvent.Set(); // Release the main thread
-                };
+                SshTunneler sshTunneler = new SshTunneler(_serverIP, _sshPrivateKeyPath, _serverSshUsername, _serverSshPort, _remoteTunnelPort, _localTunnelPort);
+                Task sshTunnelTask = Task.Run(() => sshTunneler.StartTunnelAsync(cancellationToken));
+                Console.WriteLine($"Tunnel between localhost:{_remoteTunnelPort} and localhost:{_localTunnelPort} started");
+                Console.WriteLine("Press any key to stop");
+
                 Console.ReadLine();
             }
+        }
+
+        private static void LoadConfig(IConfiguration configuration)
+        {
+            _serverIP = configuration["AppSettings:SshTunnel:ServerIP"];
+            _sshPrivateKeyPath = configuration["AppSettings:SshTunnel:SshPrivateKeyPath"];
+            _serverSshUsername = configuration["AppSettings:SshTunnel:ServerSshUsername"];
+            _serverSshPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:ServerSshPort"]);
+            _remoteTunnelPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:ServerTunnelingPort"]);
+            _localTunnelPort = Convert.ToInt32(configuration["AppSettings:SshTunnel:LocalTunnelingPort"]);
+
+            _humidityLogPath = configuration["AppSettings:Logging:HumidityLogPath"];
+            _webServerLogPath = configuration["AppSettings:Logging:WebServerLogPath"];
         }
 
         private static WebServer CreateWebServer(string url)

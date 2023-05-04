@@ -30,17 +30,42 @@ namespace WWWatering_desktop
             _connectionInfo = new ConnectionInfo(serverIp, serverSshPort, serverSshUsername, new PrivateKeyAuthenticationMethod(serverSshUsername, keyFiles));
         }
 
-        public void StartTunnel()
+        public async void StartTunnelAsync(CancellationToken cancellationToken)
         {
             if(_client != null)
             {
                 throw new Exception("Tunnel already started");
             }
-            _client = new SshClient(_connectionInfo);
-            _client.Connect();
-            _reverseTunnel = new ForwardedPortRemote("127.0.0.1", (uint)_remoteTunnelPort, "127.0.0.1", (uint)_localTunnelPort);
-            _client.AddForwardedPort(_reverseTunnel);
-            _reverseTunnel.Start();
+            while (true) { 
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Console.WriteLine("Cancellation requested, disposing");
+                    _reverseTunnel?.Stop();
+                    _client?.Disconnect();
+                    _reverseTunnel?.Dispose();
+                    _client?.Dispose();
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+                if (_reverseTunnel == null || !_reverseTunnel.IsStarted)
+                {
+                    try
+                    {
+                        if (_client == null || !_client.IsConnected) 
+                        {
+                            _client = new SshClient(_connectionInfo);
+                            _client.Connect();
+                        }
+                        _reverseTunnel = new ForwardedPortRemote("127.0.0.1", (uint)_remoteTunnelPort, "127.0.0.1", (uint)_localTunnelPort);
+                        _client.AddForwardedPort(_reverseTunnel);
+                        _reverseTunnel.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Exception when creating tunnel: " + ex.Message);
+                    }
+                }
+                await Task.Delay(1000, cancellationToken);
+            }
         }
 
         public void StopTunnel()

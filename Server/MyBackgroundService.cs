@@ -1,28 +1,42 @@
 ﻿using Microsoft.Extensions.Hosting;
 using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace WWWatering;
 public class MyBackgroundService : IHostedService, IDisposable
 {
-    private readonly MyService _myService;
+    private readonly PlantInfo _plantInfo;
+    private readonly HttpClient _httpClient;
     private Timer _timer;
 
-    public MyBackgroundService(MyService myService)
+    public MyBackgroundService(PlantInfo plantInfo, IHttpClientFactory httpClientFactory)
     {
-        _myService = myService;
+        _plantInfo = plantInfo;
+        _httpClient = httpClientFactory.CreateClient("TunneledClient");
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5)); // Adjust the interval as needed
+        _timer = new Timer(RequestHumidity, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
         return Task.CompletedTask;
     }
 
-    private void DoWork(object? state)
+    private async void RequestHumidity(object? state)
     {
-        _myService.GetMessage();
+        try
+        {
+            var response = await _httpClient.GetAsync("/api/get-humidity");
+            response.EnsureSuccessStatusCode();
+            var responseDict = await response.Content.ReadFromJsonAsync<Dictionary<string, int>>();
+            _plantInfo.Humidity = responseDict["Humidity"];
+            _plantInfo.ErrorInfo = null;
+        }
+        catch (Exception ex)
+        {
+            _plantInfo.ErrorInfo = ex.Message;
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

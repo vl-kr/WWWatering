@@ -35,6 +35,12 @@ h2 {
     color: #a1ecb3;
 }
 
+.errorMessage {
+    font-size: 20px;
+    color: #e74c3c;
+    font-weight: bold;
+}
+
 #humidity {
     font-size: 38px;
     font-weight: bold;
@@ -54,6 +60,7 @@ h2 {
     width: 75%;
 }
 
+#sliderValueMl,
 #sliderValue {
     font-size: 1.2em;
     background-color: #343a40;
@@ -63,6 +70,10 @@ h2 {
     display: inline-block;
     width: 30px;
     text-align: center;
+}
+
+#sliderValueMl {
+    width: 50px;
 }
 
 .login,
