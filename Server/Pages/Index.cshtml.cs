@@ -17,6 +17,31 @@ namespace WWWatering.Pages
         public string? ErrorInfo => _plantInfo.ErrorInfo;
         public string PostRequestWateringMessage { get; private set; }
 
+        private string GetTimeElapsedMessage(DateTime lastEvent)
+        {
+            string timeElapsedMessage;
+            if ((DateTime.UtcNow - lastEvent).TotalDays > 1)
+            {
+                double days = (DateTime.UtcNow - lastEvent).TotalDays;
+                timeElapsedMessage = $"{Math.Round(days, 2)} days ago";
+            }
+            else if ((DateTime.UtcNow - lastEvent).TotalHours > 1)
+            {
+                double hours = (DateTime.UtcNow - lastEvent).TotalHours;
+                timeElapsedMessage = $"{Math.Round(hours, 2)} hours ago";
+            }
+            else if ((DateTime.UtcNow - lastEvent).TotalMinutes > 1)
+            {
+                double minutes = (DateTime.UtcNow - lastEvent).TotalMinutes;
+                timeElapsedMessage = $"{Math.Round(minutes, 2)} minutes ago";
+            }
+            else
+            {
+                timeElapsedMessage = $"{(int)(DateTime.UtcNow - lastEvent).TotalSeconds} seconds ago";
+            }
+            return timeElapsedMessage;
+        }
+
         public string HumdityValueMessage
         {
             get
@@ -42,8 +67,8 @@ namespace WWWatering.Pages
                 }
                 else
                 {
-                    int secondsSinceLastChecked = (DateTime.UtcNow - _plantInfo.LastChecked.Value).Seconds;
-                    return $"Last updated: {_plantInfo.LastChecked.Value.ToLongTimeString()} ({secondsSinceLastChecked} seconds ago)";
+                    string timeElapsedMessage = GetTimeElapsedMessage(_plantInfo.LastChecked.Value);
+                    return $"Last updated: {_plantInfo.LastChecked.Value.ToLongTimeString()} ({timeElapsedMessage})";
                 }
             }
         }
@@ -58,26 +83,8 @@ namespace WWWatering.Pages
                 }
                 else
                 {
-                    string timeElapsedMessage;
-                    if ((DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalDays > 1)
-                    {
-                        double days = (DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalDays;
-                        timeElapsedMessage = $"{Math.Round(days, 2)} days ago";
-                    }
-                    else if ((DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalHours > 1)
-                    {
-                        double hours = (DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalHours;
-                        timeElapsedMessage = $"{Math.Round(hours, 2)} hours ago";
-                    }
-                    else if ((DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalMinutes > 1)
-                    {
-                        double minutes = (DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalMinutes;
-                        timeElapsedMessage = $"{Math.Round(minutes, 2)} minutes ago";
-                    }
-                    else
-                    {
-                        timeElapsedMessage = $"{(int)(DateTime.UtcNow - _plantInfo.LastWatering.Value).TotalSeconds} seconds ago";
-                    }
+                    string timeElapsedMessage = GetTimeElapsedMessage(_plantInfo.LastWatering.Value);
+                    
                     return $"{_plantInfo.LastWatering.Value.ToLongTimeString()} ({timeElapsedMessage})";
                 }
             }

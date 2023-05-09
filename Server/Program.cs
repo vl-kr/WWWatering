@@ -30,10 +30,10 @@ namespace WWWatering
                 client.BaseAddress = new Uri("http://127.0.0.1:5555/");
             });
             builder.Services.AddSingleton<PlantInfo>();
-            builder.Services.AddHostedService<MyBackgroundService>();
+            builder.Services.AddHostedService<AutoHumidityUpdaterBackgroundService>();
             builder.Services.AddRazorPages(options =>
             {
-                options.Conventions.AllowAnonymousToPage("/Privacy");
+                options.Conventions.AllowAnonymousToPage("/About");
                 options.Conventions.AllowAnonymousToPage("/Login");
             });
 
