@@ -37,6 +37,7 @@ namespace WWWatering_desktop
                 int seconds = Convert.ToInt32(requestData["SliderValue"]);
                 string user = requestData["User"];
                 Logger.Info($"Watering for {seconds} seconds by {user}");
+                Console.WriteLine($"Watering for {seconds} seconds by {user}");
             }
             catch (Exception ex)
             {
