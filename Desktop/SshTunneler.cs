@@ -30,7 +30,7 @@ namespace WWWatering_desktop
             _connectionInfo = new ConnectionInfo(serverIp, serverSshPort, serverSshUsername, new PrivateKeyAuthenticationMethod(serverSshUsername, keyFiles));
         }
 
-        public async void StartTunnelAsync(CancellationToken cancellationToken)
+        public async Task StartTunnelAsync(CancellationToken cancellationToken)
         {
             if(_client != null)
             {

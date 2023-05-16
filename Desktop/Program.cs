@@ -47,11 +47,13 @@ namespace WWWatering_desktop
                 Console.WriteLine($"Server listening at {url}.");
 
                 SshTunneler sshTunneler = new SshTunneler(_serverIP, _sshPrivateKeyPath, _serverSshUsername, _serverSshPort, _remoteTunnelPort, _localTunnelPort);
-                Task sshTunnelTask = Task.Run(() => sshTunneler.StartTunnelAsync(cancellationToken));
+                Task sshTunnelTask = Task.Run(async () => await sshTunneler.StartTunnelAsync(cancellationToken));
                 Console.WriteLine($"Tunnel between localhost:{_remoteTunnelPort} and localhost:{_localTunnelPort} started");
                 Console.WriteLine("Press any key to stop");
 
                 Console.ReadLine();
+                humidityLogger.StopLogging();
+                tokenSource.Cancel();
             }
         }
 

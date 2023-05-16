@@ -30,5 +30,11 @@ namespace WWWatering_desktop
             _logStreamWriter.WriteLine(e.SignalTime.ToString("yyyy-MM-dd HH:mm:ss") + " " + HumiditySimulator.GetHumidity());
             _logStreamWriter.Flush();
         }
+
+        public void StopLogging()
+        {
+            _timer.Stop();
+            _logStreamWriter.Close();
+        }
     }
 }
