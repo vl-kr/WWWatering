@@ -20,7 +20,7 @@ namespace WWWatering_desktop
 
         public void StartLogging()
         {
-            _timer = new System.Timers.Timer(60000); // every 60 seconds
+            _timer = new System.Timers.Timer(5000); // every 5 seconds
             _timer.Elapsed += LogHumidity;
             _timer.Start();
         }

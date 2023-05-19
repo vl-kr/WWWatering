@@ -10,6 +10,8 @@ namespace WWWatering_desktop
 {
     public class SshTunneler : IDisposable
     {
+        public bool IsTunnelStarted => _reverseTunnel != null && _reverseTunnel.IsStarted;
+
         private int _remoteTunnelPort;
         private int _localTunnelPort;
 
@@ -28,15 +30,17 @@ namespace WWWatering_desktop
             _privateKeyFile = new PrivateKeyFile(sshPrivateKeyPath);
             PrivateKeyFile[] keyFiles = new[] { _privateKeyFile };
             _connectionInfo = new ConnectionInfo(serverIp, serverSshPort, serverSshUsername, new PrivateKeyAuthenticationMethod(serverSshUsername, keyFiles));
+            _connectionInfo.Timeout = TimeSpan.FromSeconds(5);
         }
 
-        public async Task StartTunnelAsync(CancellationToken cancellationToken)
+        public async void StartTunnelAsync(CancellationToken cancellationToken)
         {
-            if(_client != null)
+            if (_client != null)
             {
                 throw new Exception("Tunnel already started");
             }
-            while (true) { 
+            while (true)
+            {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     Console.WriteLine("Cancellation requested, disposing");
@@ -48,9 +52,10 @@ namespace WWWatering_desktop
                 }
                 if (_reverseTunnel == null || !_reverseTunnel.IsStarted)
                 {
+                    Console.WriteLine($"Creating tunnel between {_connectionInfo.Host}:{_remoteTunnelPort} and localhost:{_localTunnelPort}");
                     try
                     {
-                        if (_client == null || !_client.IsConnected) 
+                        if (_client == null || !_client.IsConnected)
                         {
                             _client = new SshClient(_connectionInfo);
                             _client.Connect();
@@ -62,6 +67,14 @@ namespace WWWatering_desktop
                     catch (Exception ex)
                     {
                         Console.WriteLine("Exception when creating tunnel: " + ex.Message);
+                    }
+                    if (IsTunnelStarted)
+                    {
+                        Console.WriteLine($"Tunnel between localhost:{_remoteTunnelPort} and localhost:{_localTunnelPort} started");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Tunnel not created, retrying...");
                     }
                 }
                 await Task.Delay(1000, cancellationToken);
