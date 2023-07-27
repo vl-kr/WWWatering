@@ -19,17 +19,17 @@ namespace WWWatering.Pages
         }
 
         [BindProperty]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [BindProperty]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         public bool ShowErrorMessage { get; private set; }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            var hardcodedUsername = _configuration["HardcodedCredentials:Username"];
-            var hardcodedPassword = _configuration["HardcodedCredentials:Password"];
+            var hardcodedUsername = _configuration["USER1_USERNAME"];
+            var hardcodedPassword = _configuration["USER1_PASSWORD"];
 
             if (Username == hardcodedUsername && Password == hardcodedPassword)
             {

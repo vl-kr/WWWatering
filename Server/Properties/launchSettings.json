@@ -1,21 +1,15 @@
-﻿{
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:39907",
-      "sslPort": 44300
-    }
-  },
+{
   "profiles": {
     "WWWatering": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7179;http://localhost:5015",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "USER1_USERNAME": "user1",
+        "USER1_PASSWORD": "jkjhkh"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7179;http://localhost:5015"
     },
     "IIS Express": {
       "commandName": "IISExpress",
@@ -23,6 +17,14 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:39907",
+      "sslPort": 44300
     }
   }
 }
